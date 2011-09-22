@@ -1,0 +1,9 @@
+About gnox
+==========
+
+gnox is a command-line utility that notifies user about the changes in his
+GMail mailbox. The main advantage of gnox is that it uses XMPP to fetch new
+mail notifications unlike the other similar programs basically using POP3 or
+IMAP and rarely Atom feed. The crucial part of this approach is that the
+notifications are pushed by the server and hence the mailbox status is updated
+almost immediately.

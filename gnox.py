@@ -32,10 +32,24 @@ NS_NOTIFY = 'google:mail:notify'
 LOG_LEVELS = [logging.CRITICAL, logging.ERROR, logging.WARN, logging.INFO,
               logging.DEBUG]
 
+config = None
+options = None
 retry_pause = 5
 
 logging.basicConfig()
 log = logging.getLogger(PROG_NAME)
+
+
+def get_option(key, default=None):
+    section, option = key.split('.')
+
+    if not config.has_section(section):
+        config.add_section(section)
+
+    if not config.has_option(section, option):
+        config.set(section, option, default)
+
+    return config.get(section, option)
 
 
 def parse_mail_notification(mbox):
@@ -47,8 +61,14 @@ def parse_mail_notification(mbox):
     print count
 
     for thread in mbox.getChildren():
-        subj = thread.getTag('subject')
-        print subj.getData()
+        subj = thread.getTag('subject').getData()
+        max_length = get_option('format.max-length')
+
+        if max_length and max_length > 0:
+            subj = subj[:int(max_length)] + '...'
+
+        print subj
+
 
 def send_mail_request(dispatcher):
     iq = xmpp.protocol.Iq('get', queryNS=NS_NOTIFY)
@@ -91,8 +111,7 @@ def feature_request_callback(dispatcher, iq):
                 raise xmpp.protocol.NodeProcessed
 
 
-def msg_loop(client, domain):
-    #client.RegisterHandler('iq', iq_callback)
+def msg_loop(client, domain, config):
     client.RegisterHandler('iq', feature_request_callback, ns=NS_DISCO)
 
     iq = xmpp.protocol.Iq('get', to=domain, queryNS=NS_DISCO)
@@ -103,57 +122,59 @@ def msg_loop(client, domain):
         client.Process(1)
 
 
-def connect(jid, password, retry):
-    jid = xmpp.protocol.JID(jid)
+def connect():
+    jid = xmpp.protocol.JID(config.get('user', 'jid'))
     domain = jid.getDomain()
 
     try:
         while True:
             client = xmpp.Client(domain, debug=[])
-            dispatcher = client.connect()
+            dispatcher = client.connect(get_option('protocol.secure'))
 
             if dispatcher:
                 log.info('connected')
-                auth = client.auth(jid.getNode(), password,
+                auth = client.auth(jid.getNode(),
+                                   config.get('user', 'password'),
                                    resource=jid.getResource())
                 client.sendInitPresence(False)
 
                 if auth:
                     log.info('authenticated')
-                    msg_loop(client, domain)
+                    msg_loop(client, domain, config)
                     break
 
             log.error('authentication failed')
 
-            if not retry:
-                break
-            else:
+            if options.retry:
                 log.info('next try after %d seconds' % retry_pause)
                 time.sleep(retry_pause)
+            else:
+                break
     except KeyboardInterrupt:
         client.disconnect()
 
 
 def main():
+    global config, options
+
     parser = optparse.OptionParser(prog=PROG_NAME)
     parser.add_option('-v', action='count', help='verbosity level')
     parser.add_option('-r', '--retry', action='store_true',
                       help='retry on failure')
 
-    opts, args = parser.parse_args()
+    options, args = parser.parse_args()
 
-    if opts.v:
-        if opts.v > len(LOG_LEVELS):
+    if options.v:
+        if options.v > len(LOG_LEVELS):
             parser.error('too high verbosity level - must be between 0 and 5')
         else:
-            log.setLevel(LOG_LEVELS[opts.v - 1])
+            log.setLevel(LOG_LEVELS[options.v - 1])
 
     config = ConfigParser.ConfigParser()
     config.read([os.path.join(i, CONFIG_FILE)
                  for i in [os.path.expanduser('~'), os.getcwd()]])
 
-    connect(config.get('user', 'jid'), config.get('user', 'password'),
-                       opts.retry)
+    connect()
 
 
 if __name__ == '__main__':

@@ -1,3 +1,9 @@
 [user]
 jid = user@gmail.com
 password = password
+
+[format]
+# Truncate message length up to provided value.
+# Ellipsis length is not included in the value.
+# Do not specify any value in order to get full-length text.
+max-length = 25

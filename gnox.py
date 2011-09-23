@@ -20,6 +20,7 @@ import ConfigParser
 import logging
 import optparse
 import os
+import sys
 import time
 import xmpp
 
@@ -58,8 +59,10 @@ def parse_mail_notification(mbox):
         return
 
     count = mbox.getAttr('total-matched')
-    print count
+    header = get_option('format.header').replace('%count', count)
+    print header
 
+    msg_fmt = get_option('format.message')
     for thread in mbox.getChildren():
         subj = thread.getTag('subject').getData()
         max_length = get_option('format.max-length')
@@ -67,7 +70,10 @@ def parse_mail_notification(mbox):
         if max_length and max_length > 0:
             subj = subj[:int(max_length)] + '...'
 
-        print subj
+        msg = msg_fmt.replace('%subj', subj)
+        print msg
+
+    sys.stdout.flush()
 
 
 def send_mail_request(dispatcher):
@@ -129,7 +135,7 @@ def connect():
     try:
         while True:
             client = xmpp.Client(domain, debug=[])
-            dispatcher = client.connect(get_option('protocol.secure'))
+            dispatcher = client.connect(secure=get_option('protocol.secure'))
 
             if dispatcher:
                 log.info('connected')

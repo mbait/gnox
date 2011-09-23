@@ -1,8 +1,20 @@
+# The config file format is compatible with python's ConfigParser library.
+# See http://docs.python.org/library/configparser.html for more details.
 [user]
 jid = user@gmail.com
 password = password
 
 [format]
+# Format string for notification header.
+# Available substitutions:
+#   %count - number of new mail threads
+header = %count
+
+# Format string for message per thread.
+# Available substitutions:
+#   %subj - thread subject
+message = %subj
+
 # Truncate message length up to provided value.
 # Ellipsis length is not included in the value.
 # Do not specify any value in order to get full-length text.

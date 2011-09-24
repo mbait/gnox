@@ -33,6 +33,8 @@ NS_NOTIFY = 'google:mail:notify'
 LOG_LEVELS = [logging.CRITICAL, logging.ERROR, logging.WARN, logging.INFO,
               logging.DEBUG]
 
+PRESENCE_INTERVAL = 60
+
 config = None
 options = None
 retry_pause = 5
@@ -124,8 +126,17 @@ def msg_loop(client, domain, config):
     log.debug('sending feature request:\n' + str(iq))
     client.send(iq)
 
+    presence_time = time.time() + PRESENCE_INTERVAL
+
     while True:
-        client.Process(1)
+        if not client.Process(1):
+            return False
+
+        # Sending presence notifications helps to reveal network problems.
+        if time.time() > presence_time:
+            log.info('sending presence notification')
+            client.sendPresence()
+            presence_time = time.time() + PRESENCE_INTERVAL
 
 
 def connect():
@@ -146,10 +157,15 @@ def connect():
 
                 if auth:
                     log.info('authenticated')
-                    msg_loop(client, domain, config)
-                    break
 
-            log.error('authentication failed')
+                    if msg_loop(client, domain, config):
+                        break
+                    else:
+                        log.error('disconnected')
+                else:
+                    log.error('authentication failed')
+            else:
+                log.error('connection failed')
 
             if options.retry:
                 log.info('next try after %d seconds' % retry_pause)

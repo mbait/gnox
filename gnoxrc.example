@@ -6,7 +6,7 @@ password = password
 
 [protocol]
 # This options has 3-way style:
-#   None - try to use ssl/tls is possible
+#   None - try to use ssl/tls if possible
 #   1 - force use ssl/tls
 #   0 - do not use use secure layer
 

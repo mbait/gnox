@@ -4,15 +4,6 @@
 jid = user@gmail.com
 password = password
 
-[protocol]
-# This options has 3-way style:
-#   None - try to use ssl/tls if possible
-#   1 - force use ssl/tls
-#   0 - do not use use secure layer
-
-# For now the value '1' is known to cause a crash of the xmpppy library.
-secure = 0
-
 [format]
 # Format string for notification header.
 # Available substitutions:

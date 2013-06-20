@@ -140,13 +140,13 @@ def msg_loop(client, domain, config):
 
 
 def connect():
-    jid = xmpp.protocol.JID(config.get('user', 'jid'))
+    jid = xmpp.JID(config.get('user', 'jid'))
     domain = jid.getDomain()
 
     try:
         while True:
             client = xmpp.Client(domain, debug=[])
-            dispatcher = client.connect(secure=get_option('protocol.secure'))
+            dispatcher = client.connect()
 
             if dispatcher:
                 log.info('connected')

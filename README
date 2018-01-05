@@ -1,6 +1,6 @@
 # About gnox
 
-gnox is a command-line utility that notifies user about the changes in his
+gnox is a command-line utility that notifies user about the changes in their
 GMail mailbox. The main advantage of gnox is that it uses XMPP to fetch new
 mail notifications unlike the other similar programs basically using POP3 or
 IMAP and rarely Atom feed. The crucial part of this approach is that the
@@ -9,6 +9,7 @@ almost immediately.
 
 # Running gnox
 
-Read gnoxrc.example first and create `.gnoxrc` with requires fields. Run gnox
-as a regular script. gnox requires `xmpp` python module. In Ubuntu it can be
+1. Read gnoxrc.example first and create `.gnoxrc` with required fields.
+2. Run Gnox as a regular script.
+3. Gnox requires `xmpp` python module. In Ubuntu it can be
 installed as `apt-get install python-xmpp -y`.
